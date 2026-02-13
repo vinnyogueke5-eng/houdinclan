@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Fetch Test</title>
+<style>
+body { font-family: Arial; background: #000; color: #0f0; padding: 20px; }
+#result { margin-top: 20px; padding: 10px; border: 1px solid #0f0; }
+button { padding: 10px 20px; background: #0f0; color: #000; cursor: pointer; }
+</style>
+</head>
+<body>
+<h1>Fetch Test</h1>
+<button onclick="testFetch()">Test Fetch to Register.php</button>
+<button onclick="testGet()">Test GET Health Check</button>
+<div id="result"></div>
+
+<script>
+async function testFetch() {
+  const result = document.getElementById('result');
+  result.textContent = 'Testing...';
+  try {
+    const data = JSON.stringify({
+      username: 'fetchtest',
+      email: 'fetch@test.com',
+      password: 'test123',
+      clanname: 'HOUDINI',
+      fullname: 'Fetch Test'
+    });
+    
+    console.log('Sending JSON:', data);
+    
+    const resp = await fetch('Register.php', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: data
+    });
+    
+    console.log('Status:', resp.status);
+    const text = await resp.text();
+    result.textContent = 'Success! Response: ' + text;
+  } catch (err) {
+    console.error('Error:', err);
+    result.textContent = 'Error: ' + err.toString();
+  }
+}
+
+async function testGet() {
+  const result = document.getElementById('result');
+  result.textContent = 'Testing GET...';
+  try {
+    const resp = await fetch('test-fetch.php');
+    const text = await resp.text();
+    result.textContent = 'GET Success! Response: ' + text;
+  } catch (err) {
+    result.textContent = 'GET Error: ' + err.toString();
+  }
+}
+</script>
+</body>
+</html>

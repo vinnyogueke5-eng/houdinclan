@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Simple Register Test</title>
+<style>
+body { font-family: Arial; background: #05070d; color: #00ffe1; padding: 20px; }
+.container { max-width: 600px; margin: 0 auto; background: #071028; padding: 20px; border-radius: 8px; }
+input { width: 100%; padding: 8px; margin: 8px 0; box-sizing: border-box; }
+button { width: 100%; padding: 10px; margin: 10px 0; background: transparent; border: 1px solid #00ffe1; color: #00ffe1; cursor: pointer; }
+#result { margin-top: 20px; padding: 10px; border: 1px solid #00ffe1; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>Register Test</h1>
+
+<input type="text" id="fullname" placeholder="Full Name" />
+<input type="text" id="username" placeholder="Username" />
+<input type="email" id="email" placeholder="Email" />
+<input type="password" id="password" placeholder="Password" />
+<input type="text" id="clanname" placeholder="Clan (HOUDINI)" value="HOUDINI" />
+
+<button onclick="submitForm()">Submit</button>
+<div id="result"></div>
+</div>
+
+<script>
+function submitForm() {
+  const result = document.getElementById('result');
+  result.innerHTML = 'Submitting...';
+  
+  const data = {
+    username: document.getElementById('username').value,
+    email: document.getElementById('email').value,
+    password: document.getElementById('password').value,
+    clanname: document.getElementById('clanname').value,
+    fullname: document.getElementById('fullname').value
+  };
+  
+  console.log('Data to send:', data);
+  console.log('URL: ' + window.location.origin + '/hodini/Register.php');
+  
+  const xhr = new XMLHttpRequest();
+  
+  xhr.onreadystatechange = function() {
+    console.log('XHR State:', xhr.readyState, 'Status:', xhr.status);
+    if (xhr.readyState === 4) {
+      console.log('Response:', xhr.responseText);
+      console.log('Response headers:', xhr.getAllResponseHeaders());
+      if (xhr.status === 200) {
+        result.innerHTML = '<span style="color:#0f0">Success: ' + xhr.responseText + '</span>';
+      } else if (xhr.status === 0) {
+        result.innerHTML = 'Error: No response from server (status 0)';
+      } else {
+        result.innerHTML = 'Error ' + xhr.status + ': ' + xhr.responseText;
+      }
+    }
+  };
+  
+  xhr.ontimeout = function() {
+    console.error('XHR Timeout');
+    result.innerHTML = 'Timeout - request took too long';
+  };
+  
+  xhr.onerror = function() {
+    console.error('XHR Error - Network error or CORS issue');
+    result.innerHTML = 'Network error - check console for details';
+  };
+  
+  xhr.onabort = function() {
+    console.error('XHR Aborted');
+    result.innerHTML = 'Request aborted';
+  };
+  
+  xhr.open('POST', '/hodini/Register.php', true);
+  xhr.setRequestHeader('Content-Type', 'application/json');
+  xhr.timeout = 10000;
+  
+  try {
+    const jsonData = JSON.stringify(data);
+    console.log('Sending JSON:', jsonData);
+    xhr.send(jsonData);
+  } catch (e) {
+    console.error('Send error:', e);
+    result.innerHTML = 'Send error: ' + e.toString();
+  }
+}
+</script>
+</body>
+</html>

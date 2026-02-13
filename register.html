@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Register — HOUDINI CLAN</title>
+  <style>
+    body{font-family:Arial,Helvetica,sans-serif;background:#05070d;color:#00ffe1;margin:0;padding:20px}
+    .container{max-width:900px;margin:0 auto;background:#071028;padding:24px;border-radius:8px}
+    h1{margin:0 0 12px}
+    label{display:block;margin-top:10px}
+    input[type=text],input[type=email],input[type=password]{width:100%;padding:8px;margin-top:6px;border-radius:4px;border:1px solid #00ffe1;background:#071028;color:#00ffe1}
+    button{margin-top:12px;padding:10px 14px;border:1px solid #00ffe1;background:transparent;color:#00ffe1;border-radius:4px;cursor:pointer}
+    .media{display:flex;gap:20px;flex-wrap:wrap;margin-top:14px}
+    video,canvas{background:#000;border:1px solid #00ffe1;border-radius:6px}
+    .small{width:280px}
+    .info{font-size:13px;color:#9ef5e6;margin-top:8px}
+    .hidden{display:none}
+    .success{color:#a8ffcf}
+  </style>
+</head>
+<body>
+
+
+  <div class="container">
+    <h1>Register to HOUDINI CLAN</h1>
+    <p class="info">Complete the form. The page will request access to your camera and microphone to capture a photo and a short voice sample. This data is sent to <code>Register.php</code>.</p>
+
+    <form id="regForm" method="POST" action="register-response.php">
+      <label>Full name<input type="text" name="fullname" required></label>
+      <label>Username<input type="text" name="username" required></label>
+      <label>Email<input type="email" name="email" required></label>
+      <label>Password<input type="password" name="password" required></label>
+      <label>Clan Name (must be HOUDINI)<input type="text" name="clanname" placeholder="Enter clan name" required></label>
+
+      <div class="media">
+        <div>
+          <div>Camera preview</div>
+          <video id="video" class="small" autoplay playsinline></video>
+          <canvas id="canvas" class="small hidden"></canvas>
+          <div>
+            <button type="button" id="captureBtn">Capture Photo</button>
+            <button type="button" id="retakeBtn" class="hidden">Retake</button>
+          </div>
+        </div>
+
+        <div>
+          <div>Microphone</div>
+          <div>
+            <button type="button" id="startRec">Start Recording</button>
+            <button type="button" id="stopRec" disabled>Stop Recording</button>
+          </div>
+          <audio id="audioPlayback" controls class="small"></audio>
+          <div id="recStatus" class="info"></div>
+        </div>
+      </div>
+
+      <div style="margin-top:16px">
+        <button type="submit">Submit Registration</button>
+      </div>
+    </form>
+
+    <div id="result" class="info" style="margin-top:12px"></div>
+    <div class="info">Note: For camera/microphone access this page must be served from <strong>https</strong> or <strong>localhost</strong>.</div>
+  </div>
+
+  <script>
+  // Elements
+  const video = document.getElementById('video');
+  const canvas = document.getElementById('canvas');
+  const captureBtn = document.getElementById('captureBtn');
+  const retakeBtn = document.getElementById('retakeBtn');
+  const startRec = document.getElementById('startRec');
+  const stopRec = document.getElementById('stopRec');
+  const audioPlayback = document.getElementById('audioPlayback');
+  const recStatus = document.getElementById('recStatus');
+  const form = document.getElementById('regForm');
+  const result = document.getElementById('result');
+
+  let mediaStream = null;
+  let mediaRecorder = null;
+  let audioChunks = [];
+  let photoBlob = null;
+  let audioBlob = null;
+
+  // Start camera+mic on load (user will be prompted once)
+  async function startMedia(){
+    try{
+      mediaStream = await navigator.mediaDevices.getUserMedia({video:true,audio:true});
+      video.srcObject = mediaStream;
+    }catch(e){
+      console.error('getUserMedia error',e);
+      result.textContent = 'Camera/microphone access denied or unavailable.';
+    }
+  }
+  startMedia();
+
+  // Photo capture
+  captureBtn.addEventListener('click',()=>{
+    if(!mediaStream) return;
+    const w = video.videoWidth || 640;
+    const h = video.videoHeight || 480;
+    canvas.width = w; canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video,0,0,w,h);
+    canvas.classList.remove('hidden');
+    video.classList.add('hidden');
+    captureBtn.classList.add('hidden');
+    retakeBtn.classList.remove('hidden');
+    canvas.toBlob(b=>{photoBlob=b},'image/jpeg',0.9);
+  });
+  retakeBtn.addEventListener('click',()=>{
+    canvas.classList.add('hidden');
+    video.classList.remove('hidden');
+    captureBtn.classList.remove('hidden');
+    retakeBtn.classList.add('hidden');
+    photoBlob = null;
+  });
+
+  // Audio recording
+  startRec.addEventListener('click',()=>{
+    if(!mediaStream) return;
+    audioChunks = [];
+    const audioTracks = mediaStream.getAudioTracks();
+    if(audioTracks.length === 0){
+      recStatus.textContent = 'No audio track available.';
+      return;
+    }
+    const audioStream = new MediaStream([audioTracks[0]]);
+    mediaRecorder = new MediaRecorder(audioStream, {mimeType:'audio/webm'});
+    mediaRecorder.ondataavailable = e => { if(e.data.size>0) audioChunks.push(e.data); };
+    mediaRecorder.onstop = ()=>{
+      audioBlob = new Blob(audioChunks,{type:'audio/webm'});
+      audioPlayback.src = URL.createObjectURL(audioBlob);
+      recStatus.textContent = 'Recording saved.';
+    };
+    mediaRecorder.start();
+    startRec.disabled = true; stopRec.disabled = false; recStatus.textContent='Recording...';
+  });
+  stopRec.addEventListener('click',()=>{
+    if(mediaRecorder && mediaRecorder.state==='recording') mediaRecorder.stop();
+    startRec.disabled = false; stopRec.disabled = true;
+  });
+
+  // Traditional form submission - no JavaScript needed since form has method/action
+  // The form will submit to register-api.php and refresh the page with the response
+
+  // OPTIONAL: quick WebAuthn prompt to register platform authenticator (biometric) — requires server challenge in real apps
+  // This is a client-side hint only; a production deployment must implement server-side challenge/validation.
+  async function tryWebAuthn(){
+    if(!window.PublicKeyCredential) return;
+    try{
+      // For demo only: create dummy options. Real apps must use a server-provided challenge.
+      const options = {
+        publicKey: {
+          challenge: Uint8Array.from('demo-challenge',c=>c.charCodeAt(0)),
+          rp: {name:'HOUDINI CLAN'},
+          user: {id:Uint8Array.from('unique-id',c=>c.charCodeAt(0)),name:'demo',displayName:'Demo User'},
+          pubKeyCredParams: [{alg:-7,type:'public-key'}],
+          timeout:60000,
+          attestation:'direct'
+        }
+      };
+      const cred = await navigator.credentials.create(options);
+      console.log('WebAuthn result',cred);
+      // In production send the attestation to server for verification and storage.
+    }catch(e){console.warn('WebAuthn error',e)}
+  }
+  </script>
+</body>
+</html>

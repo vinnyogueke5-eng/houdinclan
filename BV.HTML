@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>HOUDINI CLAN | Cyber Security & Intelligence Network</title>
+<meta name="description" content="HOUDINI CLAN — Cyber Security, Intelligence and Software Engineering Network">
+
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@300;500;700&display=swap" rel="stylesheet">
+
+<style>
+body{
+  margin:0;
+  background:#05070d;
+  color:#00ffe1;
+  font-family:Orbitron, sans-serif;
+  overflow-x:hidden;
+}
+
+/* MATRIX BACKGROUND */
+#matrix{
+ position:fixed;
+ top:0;left:0;width:100%;height:100%;
+ z-index:-1;
+}
+
+/* LOADER */
+#loader{
+ position:fixed;
+ width:100%;height:100%;
+ background:#000;
+ display:flex;
+ justify-content:center;
+ align-items:center;
+ z-index:9999;
+}
+.terminal{font-family:monospace;font-size:18px;animation:blink 1s infinite alternate;}
+@keyframes blink{from{opacity:1}to{opacity:.5}}
+
+/* NAVBAR */
+nav{
+ display:flex;
+ justify-content:space-between;
+ padding:20px 40px;
+ border-bottom:1px solid #00ffe1;
+ background:#02030a;
+}
+nav a{color:#00ffe1;text-decoration:none;margin:0 15px}
+
+/* HERO */
+.hero{
+ text-align:center;
+ padding-top:120px;
+ height:90vh;
+}
+.glitch{
+ font-size:80px;
+ position:relative;
+}
+.glitch:before,.glitch:after{
+ content:attr(data-text);
+ position:absolute;left:0;
+}
+.glitch:before{color:#ff00c8;animation:glitchTop 1s infinite}
+.glitch:after{color:#00b3ff;animation:glitchBottom 1s infinite}
+
+@keyframes glitchTop{0%{transform:translate(2px,-2px)}50%{transform:translate(-2px,2px)}100%{transform:translate(2px,-2px)}}
+@keyframes glitchBottom{0%{transform:translate(-2px,0)}50%{transform:translate(2px,0)}100%{transform:translate(-2px,0)}}
+
+/* CARDS */
+.section{padding:80px 10%}
+.cards{display:flex;gap:30px;flex-wrap:wrap}
+.card{
+ flex:1;
+ border:1px solid #00ffe1;
+ padding:30px;
+ background:#0b0f1c;
+ box-shadow:0 0 15px #00ffe133;
+}
+
+/* BUTTON */
+.btn{
+ border:1px solid #00ffe1;
+ padding:10px 25px;
+ display:inline-block;
+ margin-top:20px;
+ color:#00ffe1;
+ text-decoration:none;
+}
+.btn:hover{background:#00ffe1;color:#000}
+
+/* SCROLLBAR */
+::-webkit-scrollbar{width:6px}
+::-webkit-scrollbar-thumb{background:#00ffe1;box-shadow:0 0 10px #00ffe1}
+</style>
+</head>
+
+<body>
+
+<!-- LOADER -->
+<div id="loader">
+ <div class="terminal">
+  <p>> Initializing HOUDINI CLAN network...</p>
+  <p>> Establishing encrypted channel...</p>
+  <p>> Access granted.</p>
+ </div>
+</div>
+
+<!-- MATRIX -->
+<canvas id="matrix"></canvas>
+
+<!-- NAVBAR -->
+<!-- NAVBAR -->
+<nav>
+ <div>HOUDINI CLAN</div>
+ <div>
+   <a href="BV.HTML">Home</a>
+  <a href="dashboard.html">Operations</a>
+  <a href="secret.php">Cyber Defense</a>
+  <a href="register.html">Development</a>
+  <a href="dashboard.html">Intelligence</a>
+  <a href="register.html">Join</a>
+ </div>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+ <h1 class="glitch" data-text="HOUDINI CLAN">HOUDINI CLAN</h1>
+ <h2 id="typing"></h2>
+ <a class="btn" href="dashboard.html">ENTER NETWORK</a>
+</section>
+
+<!-- FEATURES -->
+<section class="section">
+ <h2>OPERATIONS</h2>
+ <div class="cards">
+   <div class="card">
+     <h3>Cyber Defense</h3>
+     <p>Penetration testing, threat detection and digital protection.</p>
+   </div>
+   <div class="card">
+     <h3>Software Engineering</h3>
+     <p>Advanced web, mobile and underground systems.</p>
+   </div>
+   <div class="card">
+     <h3>Intelligence Operations</h3>
+     <p>Research, analysis and covert technology development.</p>
+   </div>
+ </div>
+</section>
+
+<!-- ABOUT -->
+<section class="section">
+ <h2>ABOUT HOUDINI CLAN</h2>
+ <p>
+ A covert network of developers, security researchers and digital operatives.
+ We operate in the shadows to build the future of secure technology.
+ </p>
+</section>
+
+<script>
+// loader
+const loader = document.getElementById('loader');
+setTimeout(()=>{ if(loader) loader.style.display = 'none'; },3000)
+
+// typing
+const text="We operate in the shadows to secure the future...";
+let i=0;
+function typing(){
+ if(i<text.length){
+   document.getElementById("typing").innerHTML+=text.charAt(i);
+   i++; setTimeout(typing,50);
+ }}
+typing();
+
+// matrix
+const canvas=document.getElementById("matrix");
+const ctx=canvas.getContext("2d");
+canvas.height=window.innerHeight;
+canvas.width=window.innerWidth;
+const letters="01";
+const fontSize=14;
+const columns=canvas.width/fontSize;
+const drops=[];
+for(let x=0;x<columns;x++)drops[x]=1;
+
+function draw(){
+ ctx.fillStyle="rgba(0,0,0,0.05)";
+ ctx.fillRect(0,0,canvas.width,canvas.height);
+ ctx.fillStyle="#00ffe1";
+ ctx.font=fontSize+"px monospace";
+ for(let i=0;i<drops.length;i++){
+  const text=letters[Math.random()*letters.length|0];
+  ctx.fillText(text,i*fontSize,drops[i]*fontSize);
+  if(drops[i]*fontSize>canvas.height&&Math.random()>0.975)drops[i]=0;
+  drops[i]++;
+ }}
+setInterval(draw,33);
+</script>
+
+</body>
+</html>

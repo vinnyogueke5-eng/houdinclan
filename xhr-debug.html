@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>XHR Debug Test</title>
+<style>
+body { font-family: Arial; background: #05070d; color: #00ffe1; padding: 20px; }
+.container { max-width: 600px; margin: 0 auto; background: #071028; padding: 20px; border-radius: 8px; }
+input { width: 100%; padding: 8px; margin: 8px 0; box-sizing: border-box; }
+button { width: 100%; padding: 10px; margin: 10px 0; background: transparent; border: 1px solid #00ffe1; color: #00ffe1; cursor: pointer; }
+#result { margin-top: 20px; padding: 10px; border: 1px solid #00ffe1; white-space: pre-wrap; word-wrap: break-word; }
+.success { color: #a8ffcf; }
+.error { color: #ff6b6b; }
+</style>
+</head>
+<body>
+<div class="container">
+<h1>XHR Form Test</h1>
+
+<input type="text" id="fullname" placeholder="Full Name" value="Test User" />
+<input type="text" id="username" placeholder="Username" value="test-xhr-001" />
+<input type="email" id="email" placeholder="Email" value="test-xhr@test.com" />
+<input type="password" id="password" placeholder="Password" value="pass123" />
+<input type="text" id="clanname" placeholder="Clan Name (HOUDINI)" value="HOUDINI" />
+
+<button onclick="submitForm()">Test Submit</button>
+<div id="result"></div>
+</div>
+
+<script>
+function submitForm() {
+  const result = document.getElementById('result');
+  result.textContent = 'Submitting...';
+  result.className = '';
+  
+  // Create FormData
+  const formData = new FormData();
+  formData.append('username', document.getElementById('username').value);
+  formData.append('email', document.getElementById('email').value);
+  formData.append('password', document.getElementById('password').value);
+  formData.append('clanname', document.getElementById('clanname').value);
+  formData.append('fullname', document.getElementById('fullname').value);
+  
+  console.log('Creating XHR...');
+  const xhr = new XMLHttpRequest();
+  
+  xhr.addEventListener('loadstart', function() {
+    console.log('loadstart');
+    result.textContent = 'Request started...';
+  });
+  
+  xhr.addEventListener('progress', function(e) {
+    console.log('progress:', e);
+  });
+  
+  xhr.addEventListener('load', function() {
+    console.log('load');
+    console.log('Status:', xhr.status);
+    console.log('StatusText:', xhr.statusText);
+    console.log('Response:', xhr.responseText);
+    
+    const text = xhr.responseText.trim();
+    if (xhr.status === 200) {
+      if (text.startsWith('SUCCESS')) {
+        result.textContent = text;
+        result.className = 'success';
+      } else if (text.startsWith('ERROR')) {
+        result.textContent = text;
+        result.className = 'error';
+      } else {
+        result.textContent = 'Response: ' + text;
+      }
+    } else {
+      result.textContent = 'HTTP ' + xhr.status + ': ' + text;
+      result.className = 'error';
+    }
+  });
+  
+  xhr.addEventListener('error', function() {
+    console.log('error');
+    result.textContent = 'XHR Error occurred';
+    result.className = 'error';
+  });
+  
+  xhr.addEventListener('abort', function() {
+    console.log('abort');
+    result.textContent = 'Request aborted';
+    result.className = 'error';
+  });
+  
+  console.log('Opening...');
+  xhr.open('POST', 'register-api.php', true);
+  
+  console.log('Sending...');
+  xhr.send(formData);
+  
+  result.textContent = 'Request sent, waiting for response...';
+}
+</script>
+</body>
+</html>
